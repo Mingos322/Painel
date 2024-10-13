@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Vouchers</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: #fff;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            cursor: pointer;
+            background-color: #00d2ff;
+            color: #fff;
+        }
+        button:hover {
+            background-color: #3a7bd5;
+        }
+        .voucher-list {
+            margin-top: 20px;
+        }
+        .voucher-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Painel Administrativo de Vouchers</h1>
+
+    <h2>Adicionar Voucher</h2>
+    <input type="text" id="voucherInput" placeholder="Digite o voucher">
+    <button onclick="addVoucher()">Adicionar Voucher</button>
+
+    <h2>Vouchers Cadastrados</h2>
+    <div class="voucher-list" id="voucherList"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Configuração do Firebase
+        var firebaseConfig = {
+            apiKey: "AIzaSyAhcjUiWlThBiYQpTK_G6f_OXaygJcmex0",
+            authDomain: "ctia-f6eea.firebaseapp.com",
+            projectId: "ctia-f6eea",
+            storageBucket: "ctia-f6eea.appspot.com",
+            messagingSenderId: "403370334139",
+            appId: "1:101127036846:android:dd963c962e4af5c1a5323f",
+            databaseURL: "https://ctia-f6eea-default-rtdb.firebaseio.com/"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        var database = firebase.database();
+
+        // Adiciona um novo voucher
+        function addVoucher() {
+            const voucherInput = document.getElementById('voucherInput').value.trim();
+            if (voucherInput) {
+                const voucherRef = database.ref('vouchers/' + voucherInput);
+                voucherRef.set(true)
+                    .then(() => {
+                        alert('Voucher adicionado com sucesso!');
+                        loadVouchers(); // Atualiza a lista de vouchers
+                        document.getElementById('voucherInput').value = ''; // Limpa o campo de entrada
+                    })
+                    .catch((error) => {
+                        console.error("Erro ao adicionar voucher: ", error);
+                    });
+            } else {
+                alert('Por favor, insira um voucher.');
+            }
+        }
+
+        // Carrega os vouchers do Firebase
+        function loadVouchers() {
+            const voucherList = document.getElementById('voucherList');
+            voucherList.innerHTML = ''; // Limpa a lista antes de carregar
+            const vouchersRef = database.ref('vouchers');
+
+            vouchersRef.once('value').then((snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    const voucherKey = childSnapshot.key;
+                    const voucherDiv = document.createElement('div');
+                    voucherDiv.classList.add('voucher-item');
+                    voucherDiv.innerHTML = `
+                        ${voucherKey}
+                        <button onclick="removeVoucher('${voucherKey}')">Remover</button>
+                    `;
+                    voucherList.appendChild(voucherDiv);
+                });
+            });
+        }
+
+        // Remove um voucher
+        function removeVoucher(voucherKey) {
+            const voucherRef = database.ref('vouchers/' + voucherKey);
+            voucherRef.remove()
+                .then(() => {
+                    alert('Voucher removido com sucesso!');
+                    loadVouchers(); // Atualiza a lista de vouchers
+                })
+                .catch((error) => {
+                    console.error("Erro ao remover voucher: ", error);
+                });
+        }
+
+        // Carrega os vouchers ao abrir a página
+        window.onload = function() {
+            loadVouchers();
+        };
+    </script>
+</body>
+</html>
